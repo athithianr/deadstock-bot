@@ -4,17 +4,25 @@ import platform
 from selenium import webdriver
 from bs4 import BeautifulSoup as bs
 import lxml
+import re
 
 if platform.system() == 'Darwin':
     driver = webdriver.Chrome(r'/Users/arajkumar/Desktop/deadstock-bot/chromedriver')
 elif platform.system()== 'Windows':
     driver = webdriver.Chrome(r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe')
-
 start_time = time.time() 
-base_url = 'https://www.deadstock.ca/collections/new-arrivals/products/puma-rs-x-core-puma-white'
-post_url = 'https://www.deadstock.ca/cart/add.js'
+new_arrivals_page_url = 'https://www.deadstock.ca/collections/new-arrivals'
 url = 'https://www.deadstock.ca'
-size = 9
+post_url = 'https://www.deadstock.ca/cart/add.js'
+
+
+resp = requests.get(new_arrivals_page_url).text
+soup = bs(resp, 'lxml')
+link = soup.find("a",{'class':'grid-product__meta', 'href': re.compile('university')})
+
+base_url = url + link.get('href')
+
+size = 11
 cart_time = time.time()
 r = requests.get(base_url).text
 soup = bs(r, 'lxml')
@@ -29,14 +37,11 @@ for size_option in product_variants:
     except AttributeError:
         pass        
 
-headers = {
-    'id': id,
-}
-
-response = requests.request("POST", post_url, data=headers)
+response = requests.request("POST", post_url, data={'id':id})
 
 if response.status_code == 200:
     print("Added item to cart...")
+
 
 print ("Carted in", time.time() - cart_time)
 
