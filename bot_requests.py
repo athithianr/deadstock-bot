@@ -6,24 +6,20 @@ from bs4 import BeautifulSoup as bs
 import lxml
 import re
 
-if platform.system() == 'Darwin':
-    driver = webdriver.Chrome(r'/Users/arajkumar/Desktop/deadstock-bot/chromedriver')
-elif platform.system()== 'Windows':
-    driver = webdriver.Chrome(r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe')
-start_time = time.time() 
+size = 11
 new_arrivals_page_url = 'https://www.deadstock.ca/collections/new-arrivals'
 url = 'https://www.deadstock.ca'
 post_url = 'https://www.deadstock.ca/cart/add.js'
 
 
+start_time = time.time() 
+cart_time = time.time()
 resp = requests.get(new_arrivals_page_url).text
 soup = bs(resp, 'lxml')
 link = soup.find("a",{'class':'grid-product__meta', 'href': re.compile('university')})
 
 base_url = url + link.get('href')
 
-size = 11
-cart_time = time.time()
 r = requests.get(base_url).text
 soup = bs(r, 'lxml')
 product_variants = soup.find('select', id='ProductSelect')
@@ -41,7 +37,6 @@ response = requests.request("POST", post_url, data={'id':id})
 
 if response.status_code == 200:
     print("Added item to cart...")
-
 
 print ("Carted in", time.time() - cart_time)
 
@@ -68,9 +63,17 @@ for cookie in response.cookies:
     elif cookie.name == 'cart_sig':
         cart_cookies[2]['value'] = cookie.value
 
-driver.get(url)
+dummy_url = '/404error'
+
+if platform.system() == 'Darwin':
+    driver = webdriver.Chrome(r'/Users/arajkumar/Desktop/deadstock-bot/chromedriver')
+elif platform.system()== 'Windows':
+    driver = webdriver.Chrome(r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe')
+
+driver.get(url + dummy_url)
 
 for cookie in cart_cookies:
     driver.add_cookie(cookie)
+driver.get(url)
 
 print ("My program took", time.time() - start_time, "to run")
