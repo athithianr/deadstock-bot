@@ -1,42 +1,50 @@
 import requests
 import time
-import platform
-from selenium import webdriver
 from bs4 import BeautifulSoup as bs
 import lxml
 import re
 
-size = 11
+size = 9
+size_str = str(size)
 new_arrivals_page_url = 'https://www.deadstock.ca/collections/new-arrivals'
 url = 'https://www.deadstock.ca'
 post_url = 'https://www.deadstock.ca/cart/add.js'
 
-
-start_time = time.time() 
 cart_time = time.time()
-resp = requests.get(new_arrivals_page_url).text
-soup = bs(resp, 'lxml')
-link = soup.find("a",{'class':'grid-product__meta', 'href': re.compile('university')})
+retries = 1
+while retries <=3:
+    resp = requests.get(new_arrivals_page_url).text
+    soup = bs(resp, 'lxml')
+    print('Trying to find keyword, attempt {}...'.format(retries))
+    link = soup.find("a",{'class':'grid-product__meta', 'href': re.compile('obsidian')})
+    if link == None:
+        time.sleep(retries)
+        retries +=1
+    else:
+        break
 
-base_url = url + link.get('href')
+product_page_url = url + link.get('href')
+print("Acquired product url: {}".format(product_page_url))
 
-r = requests.get(base_url).text
+r = requests.get(product_page_url).text
 soup = bs(r, 'lxml')
-product_variants = soup.find('select', id='ProductSelect')
-
-for size_option in product_variants:
-    try:
-        if '{} -'.format(size) in size_option.text:
-            id = size_option.get('value')
-            print('Size {} is in stock...'.format(size))
-            break
-    except AttributeError:
-        pass        
+# product_variants = soup.find('select', id='ProductSelect')
+option = soup.find('option', {'data-sku': re.compile(size_str)})
+id = option.get('value')
+# for size_option in product_variants:
+#     try:
+#         if '{} -'.format(size) in size_option.text:
+#             id = size_option.get('value')
+#             break
+#     except AttributeError:
+#         pass
 
 response = requests.request("POST", post_url, data={'id':id})
 
-if response.status_code == 200:
+if id and response.status_code == 200:
     print("Added item to cart...")
+else:
+    print("Unable to add item to cart...")
 
 print ("Carted in", time.time() - cart_time)
 
@@ -65,15 +73,18 @@ for cookie in response.cookies:
 
 dummy_url = '/404error'
 
+from selenium import webdriver
+import platform
+
 if platform.system() == 'Darwin':
     driver = webdriver.Chrome(r'/Users/arajkumar/Desktop/deadstock-bot/chromedriver')
 elif platform.system()== 'Windows':
     driver = webdriver.Chrome(r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe')
 
+print("Navigating to dummy url to add cookies in browser...")
 driver.get(url + dummy_url)
 
 for cookie in cart_cookies:
     driver.add_cookie(cookie)
-driver.get(url)
 
-print ("My program took", time.time() - start_time, "to run")
+driver.get(url)
