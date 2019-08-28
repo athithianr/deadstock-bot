@@ -1,7 +1,6 @@
 import requests
 import time
 from bs4 import BeautifulSoup as bs
-import lxml
 import re
 
 size = 9
@@ -12,14 +11,14 @@ post_url = 'https://www.deadstock.ca/cart/add.js'
 
 cart_time = time.time()
 retries = 1
-while retries <=3:
+while retries <= 3:
     resp = requests.get(new_arrivals_page_url).text
     soup = bs(resp, 'lxml')
     print('Trying to find keyword, attempt {}...'.format(retries))
-    link = soup.find("a",{'class':'grid-product__meta', 'href': re.compile('raptors')})
-    if link == None:
+    link = soup.find("a", {'class': 'grid-product__meta', 'href': re.compile('raptors')})
+    if link is None:
         time.sleep(retries)
-        retries +=1
+        retries += 1
     else:
         break
 
@@ -39,27 +38,27 @@ id = option.get('value')
 #     except AttributeError:
 #         pass
 
-response = requests.request("POST", post_url, data={'id':id})
+response = requests.request("POST", post_url, data={'id': id})
 
 if id and response.status_code == 200:
     print("Added item to cart...")
 else:
     print("Unable to add item to cart...")
 
-print ("Carted in", time.time() - cart_time)
+print("Carted in", time.time() - cart_time)
 
 cart_cookies = [
     {
-        'name':'cart',
-        'value':''
+        'name': 'cart',
+        'value': ''
     },
     {
-        'name':'cart_ts',
-        'value':''
+        'name': 'cart_ts',
+        'value': ''
     },
     {
-        'name':'cart_sig',
-        'value':''
+        'name': 'cart_sig',
+        'value': ''
     }
 ]
 
@@ -78,7 +77,7 @@ import platform
 
 if platform.system() == 'Darwin':
     driver = webdriver.Chrome(r'/Users/arajkumar/Desktop/deadstock-bot/chromedriver')
-elif platform.system()== 'Windows':
+elif platform.system() == 'Windows':
     driver = webdriver.Chrome(r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe')
 
 print("Navigating to dummy url to add cookies in browser...")
