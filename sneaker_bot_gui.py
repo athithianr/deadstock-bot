@@ -1,8 +1,13 @@
 from tkinter import *
+import sys
+import os
 
 def add_text():
    label1 = Label(root, text="You have entered the information to the Deadstock sneaker bot")
    label1.pack()
+
+def run():
+   os.system('bot_requests.py')
 
 root = Tk()
 root.title("Deadstock Sneaker Bot")
@@ -19,6 +24,6 @@ time_label = Label(root, text="KEY WORDS")
 time_label.pack()
 time_text_box = Entry(root, bd=1)
 time_text_box.pack()
-enter_button = Button(root, text="Enter", command=add_text)
+enter_button = Button(root, text="Run", command=run)
 enter_button.pack()
 root.mainloop()

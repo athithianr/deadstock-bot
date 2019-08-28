@@ -16,7 +16,7 @@ while retries <=3:
     resp = requests.get(new_arrivals_page_url).text
     soup = bs(resp, 'lxml')
     print('Trying to find keyword, attempt {}...'.format(retries))
-    link = soup.find("a",{'class':'grid-product__meta', 'href': re.compile('obsidian')})
+    link = soup.find("a",{'class':'grid-product__meta', 'href': re.compile('raptors')})
     if link == None:
         time.sleep(retries)
         retries +=1
@@ -86,5 +86,5 @@ driver.get(url + dummy_url)
 
 for cookie in cart_cookies:
     driver.add_cookie(cookie)
-
-driver.get(url)
+print("Navigating to cart...")
+driver.get(url + '/cart')
