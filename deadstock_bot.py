@@ -1,3 +1,5 @@
+import platform
+from selenium import webdriver
 import requests
 import time
 from bs4 import BeautifulSoup as bs
@@ -6,24 +8,31 @@ import re
 size = 9
 size_str = str(size)
 new_arrivals_page_url = 'https://www.deadstock.ca/collections/new-arrivals'
-url = 'https://www.deadstock.ca'
+base_url = 'https://www.deadstock.ca'
 post_url = 'https://www.deadstock.ca/cart/add.js'
+keywords = ['raptors']
 
+
+s = requests.Session()
+s.headers.update(
+    headers={
+        'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:46.0) Gecko/20100101 Firefox/46.0"',
+    }
+)
 cart_time = time.time()
-retries = 1
-while retries <= 3:
+for retries in range(5):
     resp = requests.get(new_arrivals_page_url).text
     soup = bs(resp, 'lxml')
-    print('Trying to find keyword, attempt {}...'.format(retries))
-    link = soup.find("a", {'class': 'grid-product__meta', 'href': re.compile('raptors')})
-    if link is None:
-        time.sleep(retries)
-        retries += 1
+    print('Trying to find keywords, attempt {}...'.format(retries+1))
+    href_link = soup.find(
+        "a", {'class': 'grid-product__meta', 'href': re.compile("|".join(keywords))})
+    if href_link is None:
+        time.sleep(1)
     else:
         break
 
-product_page_url = url + link.get('href')
-print("Acquired product url: {}".format(product_page_url))
+product_page_url = base_url + href_link.get('href')
+print("Acquired product page url: {}".format(product_page_url))
 
 r = requests.get(product_page_url).text
 soup = bs(r, 'lxml')
@@ -38,14 +47,13 @@ id = option.get('value')
 #     except AttributeError:
 #         pass
 
-response = requests.request("POST", post_url, data={'id': id})
+response = requests.post(post_url, data={'id': id})
 
 if id and response.status_code == 200:
     print("Added item to cart...")
+    print("Carted in", time.time() - cart_time)
 else:
     print("Unable to add item to cart...")
-
-print("Carted in", time.time() - cart_time)
 
 cart_cookies = [
     {
@@ -72,18 +80,18 @@ for cookie in response.cookies:
 
 dummy_url = '/404error'
 
-from selenium import webdriver
-import platform
 
 if platform.system() == 'Darwin':
-    driver = webdriver.Chrome(r'/Users/arajkumar/Desktop/deadstock-bot/chromedriver')
+    driver = webdriver.Chrome(
+        r'/Users/arajkumar/Desktop/deadstock-bot/chromedriver')
 elif platform.system() == 'Windows':
-    driver = webdriver.Chrome(r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe')
+    driver = webdriver.Chrome(
+        r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe')
 
 print("Navigating to dummy url to add cookies in browser...")
-driver.get(url + dummy_url)
+driver.get(base_url + dummy_url)
 
 for cookie in cart_cookies:
     driver.add_cookie(cookie)
 print("Navigating to cart...")
-driver.get(url + '/cart')
+driver.get(base_url + '/cart')

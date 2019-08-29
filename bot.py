@@ -2,9 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
 import platform
-start_time = time.time() 
 options = Options()
-#options.headless = True
+options.headless = True
 new_arrivals_page_url = 'https://www.deadstock.ca/collections/new-arrivals'
 size = 9.5
 
@@ -14,6 +13,7 @@ elif platform.system()== 'Windows':
     driver = webdriver.Chrome(r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe', options=options)
 
 def add_shoe_to_cart(size):
+    start_time = time.time() 
     driver.get(new_arrivals_page_url)
     e = driver.find_element_by_id('ProductSelect-option-US Size-{}'.format(size))
     driver.execute_script("arguments[0].click();", e)
@@ -21,6 +21,7 @@ def add_shoe_to_cart(size):
     b = driver.find_element_by_id('AddToCartForm1')
     driver.execute_script("arguments[0].submit();", b)
     print("Added shoes to cart...")
+    print ("Added to cart in", time.time() - start_time)
     checkout_cart()
 
 def checkout_cart():
@@ -49,6 +50,5 @@ def checkout_cart():
 
 if __name__ == '__main__':
     add_shoe_to_cart(size)
-    print ("My program took", time.time() - start_time, "to run")
 
 
