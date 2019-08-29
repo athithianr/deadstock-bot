@@ -36,16 +36,8 @@ print("Acquired product page url: {}".format(product_page_url))
 
 r = requests.get(product_page_url).text
 soup = bs(r, 'lxml')
-# product_variants = soup.find('select', id='ProductSelect')
 option = soup.find('option', {'data-sku': re.compile(size_str)})
 id = option.get('value')
-# for size_option in product_variants:
-#     try:
-#         if '{} -'.format(size) in size_option.text:
-#             id = size_option.get('value')
-#             break
-#     except AttributeError:
-#         pass
 
 response = requests.post(post_url, data={'id': id})
 

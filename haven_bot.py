@@ -1,14 +1,14 @@
-from selenium import webdriver
-import platform
 import requests
 import time
 from bs4 import BeautifulSoup as bs
 import re
+import platform
+from selenium import webdriver
 
-new_arrivals_page_url = 'https://nrml.ca/collections/new-arrivals'
-base_url = 'https://nrml.ca/'
-post_url = 'https://nrml.ca/cart/add.js'
-keywords = ['raptors', 'shox']
+new_arrivals_page_url = 'https://shop.havenshop.com/collections/new-arrivals'
+base_url = 'https://havenshop.com'
+post_url = 'https://shop.havenshop.com/cart/add.js'
+keywords = ['daybreak', 'lavender']
 size = 12
 size_str = str(size)
 
@@ -24,25 +24,27 @@ for retries in range(5):
     soup = bs(resp, 'lxml')
     print('Trying to find keywords, attempt {}...'.format(retries+1))
     href_link = soup.find(
-        "a", {'class': 'grid__image', 'href': re.compile("|".join(keywords))})
+        "a", {'class': re.compile('product-card nike'), 'href': re.compile("|".join(keywords))})
     if href_link is None:
         time.sleep(1)
     else:
         break
 
-product_page_url = base_url + href_link.get('href')
+product_page_url = href_link.get('href')
 print("Acquired product page url: {}".format(product_page_url))
 
 r = requests.get(product_page_url).text
 soup = bs(r, 'lxml')
-option = soup.find('div', {'class': 'option__variant',
-                           'data-variant-title': size_str})
-if int(option.get('data-stock')) > 0:
-    id = option.get('data-variant-id')
-else:
-    print("Sold out...")
-response = requests.post(
-    post_url, data={'id': id, 'form_type': 'product', 'utf8': '✓', 'quantity': '1'})
+product_variants = soup.find('select', {'id': 'product-select', 'name': 'id'})
+for size_option in product_variants:
+    try:
+        if '{}US'.format(size) in size_option.text:
+            id = size_option.get('value')
+            break
+    except AttributeError:
+        pass
+
+response = requests.post(post_url, data={'id': id, 'quantity': '1'})
 
 if id and response.status_code == 200:
     print("Added item to cart...")
@@ -64,6 +66,8 @@ cart_cookies = [
         'value': ''
     }
 ]
+
+print(response.cookies)
 
 for cookie in response.cookies:
     if cookie.name == 'cart':
@@ -89,4 +93,4 @@ driver.get(base_url + dummy_url)
 for cookie in cart_cookies:
     driver.add_cookie(cookie)
 print("Navigating to cart...")
-driver.get(base_url + '/cart')
+driver.get('https://shop.havenshop.com/cart')
