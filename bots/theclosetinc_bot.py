@@ -1,23 +1,20 @@
-import platform
-from selenium import webdriver
 import requests
 import time
 from bs4 import BeautifulSoup as bs
 import re
+import webbrowser
 
-size = 9
-size_str = str(size)
+sizes = [7, 9.5, 11]
 new_arrivals_page_url = 'https://www.theclosetinc.com/collections/new-arrivals'
 base_url = 'https://www.theclosetinc.com'
 post_url = 'https://www.theclosetinc.com/cart/add.js'
-keywords = ['legacy']
-cart_time = time.time()
+keywords = ['yeezy', 'inertia']
 
 
 def get_product_page_url():
-    for retries in range(5):
-        resp = session.get(new_arrivals_page_url).text
-        soup = bs(resp, 'lxml')
+    for retries in range(15):
+        response = session.get(new_arrivals_page_url).text
+        soup = bs(response, 'lxml')
         print('Trying to find keywords, attempt {}...'.format(retries+1))
         href_link = soup.find(
             "a", {'itemprop': 'url', 'href': re.compile("|".join(keywords))})
@@ -31,35 +28,24 @@ def get_product_page_url():
 
 
 def add_to_cart(product_page_url):
-    r = session.get(product_page_url).text
-    soup = bs(r, 'lxml')
-    option = soup.find('option', {'data-sku': re.compile('-' + size_str)})
-    if int(option.text) == 9:
-        id = option.get('value')
-    response = session.post(post_url, data={'id': id})
-    if id and response.status_code == 200:
-        print("Added item to cart...")
-        print("Carted in", time.time() - cart_time)
-    else:
-        print("Unable to add item to cart...")
+    response = session.get(product_page_url).text
+    soup = bs(response, 'lxml')
+    for size in sizes:
+        option = soup.find('option', {'data-sku': re.compile('-' + str(size))})
+        if option:
+            if float(option.text) == size:
+                id = option.get('value')
+                webbrowser.open_new(base_url + '/cart/{}:1'.format(id))
+        else:
+            print("Size {} sold out...".format(size))
+
 
 
 if __name__ == "__main__":
+    total_time = time.time()
     session = requests.Session()
     session.headers.update(
         {'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:46.0) Gecko/20100101 Firefox/46.0"'}
     )
-    dummy_url = '/404error'
     get_product_page_url()
-    if platform.system() == 'Darwin':
-        driver = webdriver.Chrome(
-            r'/Users/arajkumar/Desktop/deadstock-bot/chromedriver')
-    elif platform.system() == 'Windows':
-        driver = webdriver.Chrome(
-            r'C:\Users\athit\Desktop\deadstock-bot\windows_chromedriver.exe')
-    print("Navigating to dummy url to add cookies in browser...")
-    driver.get(base_url + dummy_url)
-    for cookie in session.cookies:
-        driver.add_cookie({'name': cookie.name, 'value': cookie.value})
-    print("Navigating to cart...")
-    driver.get(base_url + '/cart')
+    print("Total time: ", time.time() - total_time)

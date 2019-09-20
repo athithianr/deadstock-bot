@@ -1,0 +1,13 @@
+Sites currently supported:
+
+Canadian Shopify Sites
+-------------------------------------
+Livestock -- https://www.deadstock.ca ✔
+Haven -- https://havenshop.com ✔
+NRML -- https://nrml.ca ✔
+Off The Hook - https://offthehook.ca/ ✔
+The Closet Inc - https://www.theclosetinc.com ✔
+Capsule - https://www.capsuletoronto.com/ ✔
+Courtside Sneakers - https://www.courtsidesneakers.com
+Solestop - https://www.solestop.com/
+BB BRANDED - https://www.bbbranded.com
